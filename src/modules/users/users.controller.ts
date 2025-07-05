@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Query } from '@nestjs/common';
 
 @Controller('users')
 export class UsersController {
@@ -13,8 +14,8 @@ export class UsersController {
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll(@Query() query: string, @Query('current') current: string, @Query('pageSize') pageSize: string) {    
+    return this.usersService.findAll(query, +current, +pageSize);
   }
 
   @Get(':id')

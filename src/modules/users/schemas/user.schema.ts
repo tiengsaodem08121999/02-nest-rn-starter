@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { IsEmpty } from 'class-validator';
 import { HydratedDocument } from 'mongoose';
+import { EMPTY } from 'rxjs';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -16,21 +18,21 @@ export class User {
 
     @Prop()
     phone: string;
-
+    
     @Prop()
     address: string;
-
+    
     @Prop()
     image: string;
 
-    @Prop()
+    @Prop({default: 'USER'})
     role: string;
 
-    @Prop()
+    @Prop({default: 'LOCAL'})
     accountType: string;
 
-    @Prop()
-    isActive: string;
+    @Prop({default: false})
+    isActive: boolean;
 
     @Prop()
     codeId: string;
