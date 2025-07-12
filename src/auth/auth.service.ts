@@ -9,23 +9,22 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private JwtService: JwtService,
-  ) {}
+  ) { }
 
-  async signIn(username: string, pass: string): Promise<any> {
+  async validateUser(username: string, password: string): Promise<any> {
     const user = await this.usersService.findByEmail(username);
-    const isValidPassword = await comparePasswordHelper(pass, user.password);
-    if (!isValidPassword) {
-      throw new UnauthorizedException("Username or password is incorrect");
-    }
-  
+    const isValidPassword = await comparePasswordHelper(password, user.password);
+    if (!isValidPassword || !user) return null;
+    return user;
+  }
+
+  async login(user: any){
     const payload = {
       username: user.email,
       sub: user._id,
     };
-    
     return {
       access_token: this.JwtService.sign(payload),
     };
-  
   }
 }
