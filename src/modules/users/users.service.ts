@@ -76,6 +76,10 @@ export class UsersService {
   findOne(id: number) {
     return `This action returns a #${id} user`;
   }
+  
+  async findByEmail(email: string) {
+    return await this.userModel.findOne({ email });
+  }
 
   async update(updateUserDto: UpdateUserDto) {
     return await this.userModel.updateOne(
@@ -84,7 +88,6 @@ export class UsersService {
 
   async remove(_id: string) {
     if (mongoose.isValidObjectId(_id)) {
-      //delete user
       return await this.userModel.deleteOne({ _id});
     } else {
       throw new BadRequestException('Invalid user ID format');

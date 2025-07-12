@@ -1,26 +1,31 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { UsersService } from '@/modules/users/users.service';
+import { comparePasswordHelper } from '@/helper/util';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
-  }
+  constructor(
+    private usersService: UsersService,
+    private JwtService: JwtService,
+  ) {}
 
-  findAll() {
-    return `This action returns all auth`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
-
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+  async signIn(username: string, pass: string): Promise<any> {
+    const user = await this.usersService.findByEmail(username);
+    const isValidPassword = await comparePasswordHelper(pass, user.password);
+    if (!isValidPassword) {
+      throw new UnauthorizedException("Username or password is incorrect");
+    }
+  
+    const payload = {
+      username: user.email,
+      sub: user._id,
+    };
+    
+    return {
+      access_token: this.JwtService.sign(payload),
+    };
+  
   }
 }
