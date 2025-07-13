@@ -6,7 +6,9 @@ import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { hashPasswordHelper } from '@/helper/util';
 import aqp from 'api-query-params';
-import e from 'express';
+import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
+import { v4 as uuidv4 } from 'uuid';
+const dayjs = require('dayjs');
 
 @Injectable()
 export class UsersService {
@@ -92,5 +94,31 @@ export class UsersService {
     } else {
       throw new BadRequestException('Invalid user ID format');
     }
+  }
+
+  async handleRegister(createUserDto: CreateAuthDto) {
+    // Check if email already exists
+    const emailExists = await this.isEmailExist(createUserDto.email);
+    if (emailExists) {
+      throw new BadRequestException(`Email ${createUserDto.email} already exists`);
+    }
+
+    // Hash the password
+    const hashPassword = await hashPasswordHelper(createUserDto.password);
+    const { email, name, password } = createUserDto;
+    const newUser = await this.userModel.create({
+      email,
+      name,
+      password: hashPassword,
+      isActive: false, // Default to inactive
+      codeId: uuidv4(), // Generate a unique code ID
+      codeExpired: dayjs().add(1,'minute'),
+    });
+    
+    return {
+      _id: newUser._id,
+    };
+    // send email verification logic here if needed
+
   }
 }
