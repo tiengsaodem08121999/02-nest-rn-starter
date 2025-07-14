@@ -16,6 +16,9 @@ import { ReviewsModule } from '@/modules/reviews/reviews.module';
 import { AuthModule } from '@/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import Mail from 'nodemailer/lib/mailer';
 
 @Module({
   imports: [
@@ -28,6 +31,7 @@ import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
     OrdersModule,
     RestaurantsModule,
     ReviewsModule,
+    AuthModule,
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -36,7 +40,25 @@ import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
       }),
       inject: [ConfigService],
     }),
-    AuthModule
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        transport: {
+          host: "smtp.gmail.com",
+          port: 465,
+          ignoreTLS: true, // Ignore TLS for local development
+          secure: true, // true for 465, false for other ports
+          auth: {
+            user: configService.get<string>('MAIL_DEV_IMCOMING_USER'), // no user needed for MailDev
+            pass: configService.get<string>('MAIL_DEV_IMCOMING_PASS'), // no password needed for MailDev 
+          },
+        },
+        defaults: {
+          from: '"No Reply" <no-replay@localhost>', // Default sender address 
+        },
+      }),
+       inject: [ConfigService],
+    })
   ],
   controllers: [AppController],
   providers: [
