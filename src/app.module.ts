@@ -19,6 +19,7 @@ import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import Mail from 'nodemailer/lib/mailer';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -56,6 +57,13 @@ import Mail from 'nodemailer/lib/mailer';
         defaults: {
           from: '"No Reply" <no-replay@localhost>', // Default sender address 
         },
+        template: {
+          dir: join(__dirname, '/mail/templates'), // Path to your email templates
+          adapter: new HandlebarsAdapter(), // Use Handlebars for templating
+          options: {
+            strict: true, // Enable strict mode for Handlebars
+          },
+        }
       }),
        inject: [ConfigService],
     })

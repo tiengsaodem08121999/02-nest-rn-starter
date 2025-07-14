@@ -37,7 +37,11 @@ export class AuthController {
       to: 'tiengsaodem15051998@gmail.com',
       subject: 'Welcome to Our Service',
       text: 'Thank you for registering with us!',
-      html: '<b>Thank you for registering with us!</b>',
+      template: 'register.hbs', // Name of the template file without extension
+      context: {
+        name: 'User', // Data to be passed to the template
+        activationCode: '123456', // Example data
+      },
     });
     return "email sent";
   }

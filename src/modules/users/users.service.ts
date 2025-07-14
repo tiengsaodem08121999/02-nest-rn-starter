@@ -8,13 +8,15 @@ import { hashPasswordHelper } from '@/helper/util';
 import aqp from 'api-query-params';
 import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { MailerService } from '@nestjs-modules/mailer';
 const dayjs = require('dayjs');
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name)
-    private userModel: Model<User>
+    private userModel: Model<User>,
+    private readonly mailerService: MailerService,
   ) { }
 
   isEmailExist = async (email: string) => {
@@ -105,20 +107,32 @@ export class UsersService {
 
     // Hash the password
     const hashPassword = await hashPasswordHelper(createUserDto.password);
+    const codeId = uuidv4(); // Generate a unique code ID
     const { email, name, password } = createUserDto;
     const newUser = await this.userModel.create({
       email,
       name,
+      codeId, // Store the unique code ID
       password: hashPassword,
       isActive: false, // Default to inactive
-      codeId: uuidv4(), // Generate a unique code ID
-      codeExpired: dayjs().add(1,'minute'),
+      codeExpired: dayjs().add(5, 'minutes'), // Set expiration time to 5 minutes from now
     });
     
+    // send email verification logic here if needed
+    
+    this.mailerService.sendMail({
+      to: newUser.email,  // Send to the user's email 
+      subject: 'Activate your account',
+      template: 'register.hbs', // Name of the template file without extension
+      context: {
+        name: newUser?.name ?? newUser.email, // Data to be passed to the template
+        activationCode: codeId, // Example data
+      },
+    }); 
+
     return {
       _id: newUser._id,
     };
-    // send email verification logic here if needed
 
   }
 }
